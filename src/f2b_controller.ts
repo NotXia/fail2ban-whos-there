@@ -85,7 +85,7 @@ async function addLocationInfo(bans: BanWithoutLocation[], batch_size: number=10
 
 
 
-async function storeBansInDb(bans_from_log: BanWithoutLocation[], db: Database) {
+export async function storeBansInDb(bans_from_log: BanWithoutLocation[], db: Database) {
     let bans_not_in_db: BanWithoutLocation[] = [];
 
     // Check which ban is not recorded in DB.
@@ -119,6 +119,7 @@ export async function storeBansFromLog(logs_path: string, db: Database) {
     const log_bans = await loadBansFromLog(logs_path);
     await storeBansInDb(log_bans, db);
 }
+
 
 export async function storeBan(ban: BanWithoutLocation, db: Database) {
     await storeBansInDb([ban], db);

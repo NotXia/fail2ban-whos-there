@@ -1,9 +1,10 @@
 import express from "express";
 import { initDB } from "./db.js";
-import { storeBansFromLog, storeBan, fetchBans } from "./f2b_controller.js"
+import { storeBansFromLog, storeBan, fetchBans, storeBansInDb } from "./f2b_controller.js"
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from 'node:url';
+import { BanWithoutLocation } from "./types/ban.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -24,6 +25,7 @@ app.get("/", async (req, res) => {
 
 app.use("/", express.static(path.join(__dirname, "./public")));
 
+
 app.get("/api/bans", async (req, res) => {
 	try {
 		res.status(200).json(await fetchBans(db));
@@ -34,6 +36,10 @@ app.get("/api/bans", async (req, res) => {
 	}
 });
 
+
+let bans_insert_batch: BanWithoutLocation[] = [];
+let curr_insert_call: NodeJS.Timeout | null = null;
+
 app.post("/api/bans", async (req, res) => {
 	if (!req.body.ip || !req.body.jail_name || !req.body.timestamp) {
 		res.status(400).json({ "error": "Missing parameters" });
@@ -41,12 +47,34 @@ app.post("/api/bans", async (req, res) => {
 	}
 	try {
 		console.info(`Received ban ${req.body.timestamp} [${req.body.jail_name}] ${req.body.ip}`);
-		await storeBan({
+		bans_insert_batch.push({
 			ip: req.body.ip,
 			jail_name: req.body.jail_name,
 			timestamp: req.body.timestamp * 1000
-		}, db);
-		res.sendStatus(200);
+		});
+
+		// Batch requests to not overload ip-api.com
+		if (curr_insert_call) {
+			clearTimeout(curr_insert_call);
+			curr_insert_call = null;
+		}
+		curr_insert_call = setTimeout(async () => {
+			curr_insert_call = null
+			for (let i=0; i<3; i++) {
+				try {
+					const to_insert = bans_insert_batch;
+					bans_insert_batch = [];
+					await storeBansInDb(to_insert, db);
+				}
+				catch (error) {
+					console.error(error);
+					await new Promise(r => setTimeout(r, 60000));
+					continue;
+				}
+			}
+		}, 1000);
+
+		res.sendStatus(202);
 	}
 	catch (error) {
 		console.error(error);
