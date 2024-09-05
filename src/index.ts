@@ -40,10 +40,11 @@ app.post("/api/bans", async (req, res) => {
 		return;
 	}
 	try {
+		console.info(`Received ban ${req.body}`);
 		await storeBan({
 			ip: req.body.ip,
 			jail_name: req.body.jail_name,
-			timestamp: req.body.timestamp
+			timestamp: req.body.timestamp * 1000
 		}, db);
 		res.sendStatus(200);
 	}
