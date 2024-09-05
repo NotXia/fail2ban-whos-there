@@ -1,0 +1,30 @@
+{
+  "name": "who-is-knocking",
+  "version": "1.0.0",
+  "description": "Fail2ban map",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "cd src && tsx --env-file=../.env index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NotXia/who-is-knocking.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NotXia/who-is-knocking/issues"
+  },
+  "homepage": "https://github.com/NotXia/who-is-knocking#readme",
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who's knocking?</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <style>
+        * {
+            font-family: "Courier New";
+        }
+
+        :root {
+            --map-tiles-filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #303030;
+                color: #e2e2e2;
+            }
+            
+            #map {
+                color: #000000;
+            }
+
+            .map-tiles {
+                filter:var(--map-tiles-filter, none);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22pt;
+        }
+
+        #map { 
+            height: 55vh;
+        }
+
+        td {
+            padding-left: 15px;
+            padding-right: 15px;
+            text-align: center;
+            font-size: 13pt;
+        }
+
+        #bans-table {
+            margin: auto;
+            margin-top: 1rem
+        }
+
+        #bans-table-body {
+            display: block; 
+            height: 30vh;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Who's knocking?</h1>
+
+    <div id="map"></div>
+
+    <table id="bans-table">
+        <tbody id="bans-table-body">
+        </tbody>
+    </table>
+</body>
+
+<script>
+    async function fetchBans() {
+        const res = await fetch("<PUBLIC_URL>/api/bans", { method: "GET" })
+        return await res.json();
+    }
+
+    function addBansToMap(bans, map) {
+        let markers = L.markerClusterGroup();
+        for (const ban of bans) {
+            markers.addLayer(L.circleMarker([ban.lat, ban.lon], {radius: 5, color: 'red'}).bindPopup(ban.ip));
+        }
+        map.addLayer(markers);
+    }
+
+    function addBansToTable(bans) {
+        const tbody = document.querySelector("#bans-table-body");
+        for (const ban of bans) {
+            time = new Date(ban.timestamp)
+            tbody.innerHTML += `
+                <tr>
+                    <td>${time.toLocaleDateString()} ${time.toLocaleTimeString()}</td>
+                    <td>${ban.ip}</td>
+                    <td>${ban.country}</td>
+                </tr>
+            `;
+        }
+    }
+
+    (async () => {
+        let map = L.map('map').setView([25, 0], 1.5);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            className: "map-tiles",
+        }).addTo(map);
+
+        const bans = await fetchBans();
+        addBansToMap(bans, map);
+        addBansToTable(bans);
+    })()
+</script>
+
+</html>
