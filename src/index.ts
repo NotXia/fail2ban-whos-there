@@ -37,6 +37,7 @@ app.get("/api/bans", async (req, res) => {
 });
 
 
+// Batch requests to not overload ip-api.com
 let bans_insert_batch: BanWithoutLocation[] = [];
 let curr_insert_call: NodeJS.Timeout | null = null;
 
@@ -53,7 +54,6 @@ app.post("/api/bans", async (req, res) => {
 			timestamp: req.body.timestamp * 1000
 		});
 
-		// Batch requests to not overload ip-api.com
 		if (curr_insert_call) {
 			clearTimeout(curr_insert_call);
 			curr_insert_call = null;
@@ -84,15 +84,6 @@ app.post("/api/bans", async (req, res) => {
 
 
 async function init() {
-	// try {
-	// 	if (process.env.LOG_PATH) {
-	// 		await storeBansFromLog(process.env.LOG_PATH as string, db);
-	// 	}
-	// }
-	// catch (error) {
-	// 	console.error("Cannot load old bans from logs");
-	// }
-
 	app.listen(PORT, () => {
 		console.log(`Listening on port ${PORT}`);
 	});

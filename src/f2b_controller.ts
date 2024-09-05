@@ -1,13 +1,13 @@
 import fs from "node:fs/promises";
 import { BanWithoutLocation, Ban } from "./types/ban";
 import { Database } from "sqlite";
-import crypto from "node:crypto"
 
 
 
 async function loadBansFromLog(log_path: string) : Promise<BanWithoutLocation[]> {
     /**
      * Parses a fail2ban log and extracts ban actions.
+     * Note: the generated timestamp is off by 1 sec compared to the one given by fail2ban. Need to investigate.
      */
     let bans: BanWithoutLocation[] = []
     const data: string = await fs.readFile(log_path, { encoding: "utf8" });
@@ -23,7 +23,7 @@ async function loadBansFromLog(log_path: string) : Promise<BanWithoutLocation[]>
                 "ip": match.groups.ip,
                 "timestamp": new Date(
                     Number(match.groups.year), Number(match.groups.month)-1, Number(match.groups.day), 
-                    Number(match.groups.hours), Number(match.groups.minutes), Number(match.groups.seconds), Number(match.groups.mseconds)
+                    Number(match.groups.hours), Number(match.groups.minutes), Number(match.groups.seconds)
                 ).getTime(),
                 "jail_name": match.groups.jail_name
             });
@@ -96,8 +96,9 @@ export async function storeBansInDb(bans_from_log: BanWithoutLocation[], db: Dat
         }
     }
 
-    // Store new bans.
     const bans: Ban[] = await addLocationInfo(bans_not_in_db);
+
+    // Store new bans.
     for (const ban of bans) {
         try {
             await db.run(

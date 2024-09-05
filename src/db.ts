@@ -25,7 +25,6 @@ export async function initDB(db_path: string): Promise<Database> {
 			UNIQUE (ip, jail_name, timestamp)
 		);
 	`);
-	await db.exec("CREATE INDEX IF NOT EXISTS bans_index ON bans (timestamp)");
 
 	return db
 }
