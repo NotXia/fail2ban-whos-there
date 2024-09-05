@@ -40,7 +40,7 @@ app.post("/api/bans", async (req, res) => {
 		return;
 	}
 	try {
-		console.info(`Received ban ${req.body}`);
+		console.info(`Received ban ${req.body.timestamp} [${req.body.jail_name}] ${req.body.ip}`);
 		await storeBan({
 			ip: req.body.ip,
 			jail_name: req.body.jail_name,
@@ -56,14 +56,14 @@ app.post("/api/bans", async (req, res) => {
 
 
 async function init() {
-	try {
-		if (process.env.LOG_PATH) {
-			await storeBansFromLog(process.env.LOG_PATH as string, db);
-		}
-	}
-	catch (error) {
-		console.error("Cannot load old bans from logs");
-	}
+	// try {
+	// 	if (process.env.LOG_PATH) {
+	// 		await storeBansFromLog(process.env.LOG_PATH as string, db);
+	// 	}
+	// }
+	// catch (error) {
+	// 	console.error("Cannot load old bans from logs");
+	// }
 
 	app.listen(PORT, () => {
 		console.log(`Listening on port ${PORT}`);
