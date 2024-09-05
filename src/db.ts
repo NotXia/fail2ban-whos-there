@@ -1,8 +1,13 @@
 import sqlite3 from "sqlite3";
 import { Database, open } from "sqlite";
+import fs from "node:fs";
+import path from "node:path";
 
-
-export async function initDB(db_path: string = "./db.sqlite"): Promise<Database> {
+export async function initDB(db_path: string): Promise<Database> {
+	if (!fs.existsSync(path.dirname(db_path))){
+		fs.mkdirSync(path.dirname(db_path), { recursive: true });
+	}
+	
 	const db: Database = await open({
 		filename: db_path,
 		driver: sqlite3.Database

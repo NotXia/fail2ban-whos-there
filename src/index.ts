@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT ? process.env.PORT : 3000;
 
 
-const db = await initDB();
+const db = await initDB(process.env.DB_PATH as string);
 const app = express();
 app.use(express.json());
 
