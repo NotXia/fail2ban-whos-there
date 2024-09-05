@@ -8,6 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
+const PORT = process.env.PORT ? process.env.PORT : 3000;
+
+
 const db = await initDB();
 const app = express();
 app.use(express.json());
@@ -53,14 +56,16 @@ app.post("/api/bans", async (req, res) => {
 
 async function init() {
 	try {
-		await storeBansFromLog(process.env.LOG_PATH as string, db);
+		if (process.env.LOG_PATH) {
+			await storeBansFromLog(process.env.LOG_PATH as string, db);
+		}
 	}
 	catch (error) {
 		console.error("Cannot load old bans from logs");
 	}
 
-	app.listen(process.env.PORT, () => {
-		console.log(`Listening on port ${process.env.PORT}`);
+	app.listen(PORT, () => {
+		console.log(`Listening on port ${PORT}`);
 	});
 }
 
