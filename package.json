@@ -1,5 +1,5 @@
 {
-  "name": "who-is-knocking",
+  "name": "whos-there",
   "version": "1.0.0",
   "description": "Fail2ban map",
   "main": "index.ts",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NotXia/who-is-knocking.git"
+    "url": "git+https://github.com/NotXia/fail2ban-whos-there.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/NotXia/who-is-knocking/issues"
+    "url": "https://github.com/NotXia/fail2ban-whos-there/issues"
   },
-  "homepage": "https://github.com/NotXia/who-is-knocking#readme",
+  "homepage": "https://github.com/NotXia/fail2ban-whos-there#readme",
   "dependencies": {
     "express": "^4.19.2",
     "sqlite": "^5.1.1",
