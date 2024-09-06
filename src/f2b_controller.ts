@@ -130,25 +130,35 @@ export async function storeBan(ban: BanWithoutLocation, db: Database) {
 export async function fetchBans(
     db: Database, 
     page_number: number|null=null, page_size: number|null=null,
-    start_time: number|null=null, end_time: number|null=null
+    start_time: number|null=null, end_time: number|null=null,
+    jail_name: string|null = null
 ) : Promise<Ban[]> {
     /**
      * Fetches the bans stored in DB.
-     * It is possible to paginate the response.
+     * It is possible to paginate the response, filter by date and jail name.
      */
-    let query = "SELECT * FROM bans ORDER BY timestamp DESC";
+    let query = "SELECT * FROM bans <WHERE-CLAUSE> ORDER BY timestamp DESC";
+    let where_clauses: string[] = [];
     if (start_time != null && end_time != null) {
-        query = "SELECT * FROM bans WHERE timestamp BETWEEN @start_time AND @end_time ORDER BY timestamp DESC";
+        where_clauses.push("timestamp BETWEEN @start_time AND @end_time");
+    }
+    if (jail_name != null) {
+        where_clauses.push("jail_name = @jail_name");
     }
     if (page_number != null && page_size != null) {
         query += " LIMIT @page_size OFFSET @page_offset";
     }
+
+    query = query.replace("<WHERE-CLAUSE>", where_clauses.length > 0 ? `WHERE ${where_clauses.join(" AND ")}` : "");
 
     const stmt = await db.prepare(query);
     let params = {}
     if (start_time != null && end_time != null) {
         params["@start_time"] = start_time;
         params["@end_time"] = end_time;
+    }
+    if (jail_name != null) {
+        params["@jail_name"] = jail_name;
     }
     if (page_number != null && page_size != null) {
         params["@page_size"] = page_size;

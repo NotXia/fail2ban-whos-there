@@ -31,9 +31,10 @@ app.get("/api/bans", async (req, res) => {
 	const page_size: number|null = req.query.page_size != "null" ? Number(req.query.page_size) : null;
 	const start_time: number|null = req.query.start_time != "null" ? Number(req.query.start_time) : null;
 	const end_time: number|null = req.query.end_time != "null" ? Number(req.query.end_time) : null;
+	const jail_name: number|null = req.query.jail_name != "null" ? req.query.jail_name : null;
 
 	try {
-		res.status(200).json( await fetchBans(db, page_number, page_size, start_time, end_time) );
+		res.status(200).json( await fetchBans(db, page_number, page_size, start_time, end_time, jail_name) );
 	}
 	catch (error) {
 		console.error(error);
