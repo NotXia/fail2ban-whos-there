@@ -27,8 +27,10 @@ app.use("/", express.static(path.join(__dirname, "./public")));
 
 
 app.get("/api/bans", async (req, res) => {
+	const page_number: number = Number(req.query.page);
+	const page_size: number = Number(req.query.page_size);
 	try {
-		res.status(200).json(await fetchBans(db));
+		res.status(200).json(await fetchBans(db, page_number, page_size));
 	}
 	catch (error) {
 		console.error(error);

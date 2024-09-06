@@ -75,17 +75,20 @@
 </body>
 
 <script>
-    async function fetchBans() {
-        const res = await fetch("<PUBLIC_URL>/api/bans", { method: "GET" })
+    const PAGE_SIZE = 100;
+
+    async function fetchBans(page=0, page_size=PAGE_SIZE) {
+        const res = await fetch("<PUBLIC_URL>/api/bans?" + new URLSearchParams({
+            "page": page,
+            "page_size": page_size,
+        }).toString(), { method: "GET" });
         return await res.json();
     }
 
-    function addBansToMap(bans, map) {
-        let markers = L.markerClusterGroup();
+    function addBansToMap(bans, layer) {
         for (const ban of bans) {
-            markers.addLayer(L.circleMarker([ban.lat, ban.lon], {radius: 5, color: 'red'}).bindPopup(ban.ip));
+            layer.addLayer(L.circleMarker([ban.lat, ban.lon], {radius: 5, color: 'red'}).bindPopup(ban.ip));
         }
-        map.addLayer(markers);
     }
 
     function addBansToTable(bans) {
@@ -110,9 +113,18 @@
             className: "map-tiles",
         }).addTo(map);
 
-        const bans = await fetchBans();
-        addBansToMap(bans, map);
-        addBansToTable(bans);
+        let markers_layer = L.markerClusterGroup();
+        map.addLayer(markers_layer);
+
+
+        let i = 0;
+        let bans = [];
+        do {
+            bans = await fetchBans(i, PAGE_SIZE);
+            addBansToMap(bans, markers_layer);
+            addBansToTable(bans);
+            i++;
+        } while(bans.length > 0);
     })()
 </script>
 
