@@ -87,6 +87,8 @@
         <span id="container-custom_date" style="display: none;">
             <input type="date" id="input-start_date"/> - <input type="date" id="input-end_date"/>
         </span>
+
+        <span style="margin-left: 1em;">Total: <span id="container-total"></span></span>
     </div>
 
     <table id="bans-table">
@@ -96,7 +98,7 @@
 </body>
 
 <script>
-    const PAGE_SIZE = 100;
+    const PAGE_SIZE = 200;
 
 
     async function fetchBans(page=0, page_size=PAGE_SIZE, start_time=null, end_time=null) {
@@ -138,15 +140,20 @@
         document.querySelector("#input-end_date").disabled = true;
 
         document.querySelector("#bans-table-body").innerHTML = "";
+        document.querySelector("#container-total").innerHTML = "";
         markers_layer.clearLayers();
 
         let i = 0;
+        let total = 0;
         let bans = [];
         do {
             bans = await fetchBans(i, PAGE_SIZE, start_time, end_time);
             addBansToMap(bans, markers_layer);
             addBansToTable(bans);
             i++;
+
+            total += bans.length;
+            document.querySelector("#container-total").innerHTML = total;
         } while(bans.length > 0);
 
         document.querySelector("#select-date").disabled = false;
