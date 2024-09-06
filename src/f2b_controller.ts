@@ -127,20 +127,34 @@ export async function storeBan(ban: BanWithoutLocation, db: Database) {
 }
 
 
-export async function fetchBans(db: Database, page_number: number|null=null, page_size: number|null=null) : Promise<Ban[]> {
+export async function fetchBans(
+    db: Database, 
+    page_number: number|null=null, page_size: number|null=null,
+    start_time: number|null=null, end_time: number|null=null
+) : Promise<Ban[]> {
     /**
      * Fetches the bans stored in DB.
      * It is possible to paginate the response.
      */
     let query = "SELECT * FROM bans ORDER BY timestamp DESC";
+    if (start_time != null && end_time != null) {
+        query = "SELECT * FROM bans WHERE timestamp BETWEEN @start_time AND @end_time ORDER BY timestamp DESC";
+    }
     if (page_number != null && page_size != null) {
         query += " LIMIT @page_size OFFSET @page_offset";
     }
 
     const stmt = await db.prepare(query);
-    if (page_number != null && page_size != null) {
-        await stmt.bind({ "@page_size": page_size, "@page_offset": page_size*page_number });
+    let params = {}
+    if (start_time != null && end_time != null) {
+        params["@start_time"] = start_time;
+        params["@end_time"] = end_time;
     }
+    if (page_number != null && page_size != null) {
+        params["@page_size"] = page_size;
+        params["@page_offset"] = page_size*page_number;
+    }
+    await stmt.bind(params);
     const res: Ban[] = await stmt.all();
 
     return res.map(x => ({

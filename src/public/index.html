@@ -57,8 +57,14 @@
 
         #bans-table-body {
             display: block; 
-            height: 30vh;
+            height: 25vh;
             overflow: auto;
+        }
+
+        #container-query {
+            margin: auto; 
+            width: fit-content;
+            margin-top: 1em;
         }
     </style>
 </head>
@@ -67,6 +73,21 @@
     <h1>Who's there?</h1>
 
     <div id="map"></div>
+
+    <div id="container-query">
+        <span>Filter date: </span>
+        <select id="select-date">
+            <option value="today" selected>Today</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="all">All</option>
+            <option value="custom">Custom</option>
+        </select>
+        
+        <span id="container-custom_date" style="display: none;">
+            <input type="date" id="input-start_date"/> - <input type="date" id="input-end_date"/>
+        </span>
+    </div>
 
     <table id="bans-table">
         <tbody id="bans-table-body">
@@ -77,13 +98,17 @@
 <script>
     const PAGE_SIZE = 100;
 
-    async function fetchBans(page=0, page_size=PAGE_SIZE) {
+
+    async function fetchBans(page=0, page_size=PAGE_SIZE, start_time=null, end_time=null) {
         const res = await fetch("<PUBLIC_URL>/api/bans?" + new URLSearchParams({
             "page": page,
             "page_size": page_size,
+            "start_time": start_time, 
+            "end_time": end_time
         }).toString(), { method: "GET" });
         return await res.json();
     }
+
 
     function addBansToMap(bans, layer) {
         for (const ban of bans) {
@@ -106,6 +131,59 @@
         }
     }
 
+
+    async function loadBans(markers_layer, start_time, end_time) {
+        document.querySelector("#select-date").disabled = true;
+        document.querySelector("#input-start_date").disabled = true;
+        document.querySelector("#input-end_date").disabled = true;
+
+        document.querySelector("#bans-table-body").innerHTML = "";
+        markers_layer.clearLayers();
+
+        let i = 0;
+        let bans = [];
+        do {
+            bans = await fetchBans(i, PAGE_SIZE, start_time, end_time);
+            addBansToMap(bans, markers_layer);
+            addBansToTable(bans);
+            i++;
+        } while(bans.length > 0);
+
+        document.querySelector("#select-date").disabled = false;
+        document.querySelector("#input-start_date").disabled = false;
+        document.querySelector("#input-end_date").disabled = false;
+    }
+
+    async function loadBansToday(markers_layer) {
+        let start = new Date();
+        let end = new Date();
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        await loadBans(markers_layer, start.getTime(), end.getTime());
+    }
+
+    async function loadBansWeek(markers_layer) {
+        let start = new Date();
+        let end = new Date();
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - start.getDay() + (start.getDay() == 0 ? -6 : 1));
+        end.setHours(23, 59, 59, 999);
+        end.setDate(end.getDate() + (end.getDay() == 0 ? 0 : 7-end.getDay()) );
+        await loadBans(markers_layer, start.getTime(), end.getTime());
+    }
+
+    async function loadBansMonth(markers_layer) {
+        let start = new Date();
+        let end = new Date();
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        end.setMonth(end.getMonth()+1);
+        end.setDate(0);
+        end.setHours(23, 59, 59, 999);
+        await loadBans(markers_layer, start.getTime(), end.getTime());
+    }
+
+
     (async () => {
         let map = L.map('map').setView([25, 0], 1.5);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -116,16 +194,50 @@
         let markers_layer = L.markerClusterGroup();
         map.addLayer(markers_layer);
 
+        // Handle time filter
+        const date_option_select = document.querySelector("#select-date");
+        date_option_select.addEventListener("change", async (e) => {
+            document.querySelector("#container-custom_date").style.display = "none";
+            switch (date_option_select.value) {
+                case "today":
+                    await loadBansToday(markers_layer);
+                    break;
+                case "week":
+                    await loadBansWeek(markers_layer);
+                    break;
+                case "month":
+                    await loadBansMonth(markers_layer);
+                    break;
+                case "all":
+                    await loadBans(markers_layer, null, null);
+                    break;
+                case "custom":
+                    document.querySelector("#container-custom_date").style.display = "inline";
+                    break;
+            }
+        });
 
-        let i = 0;
-        let bans = [];
-        do {
-            bans = await fetchBans(i, PAGE_SIZE);
-            addBansToMap(bans, markers_layer);
-            addBansToTable(bans);
-            i++;
-        } while(bans.length > 0);
-    })()
+        // Handle custom time query
+        const start_date_input = document.querySelector("#input-start_date");
+        const end_date_input = document.querySelector("#input-end_date");
+        async function loadBansCustom(markers_layer) {
+            if (start_date_input.value != "" && end_date_input.value != "") {
+                let start = new Date(start_date_input.value)
+                let end = new Date(end_date_input.value)
+                start.setHours(0, 0, 0, 0);
+                end.setHours(23, 59, 59, 999);
+                await loadBans(markers_layer, start.getTime(), end.getTime());
+            }
+        }
+        start_date_input.addEventListener("change", async (e) => {
+            await loadBansCustom(markers_layer);
+        });
+        end_date_input.addEventListener("change", async (e) => {
+            await loadBansCustom(markers_layer);
+        });
+
+        await loadBansToday(markers_layer);
+    })();
 </script>
 
 </html>

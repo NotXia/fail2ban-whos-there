@@ -27,10 +27,13 @@ app.use("/", express.static(path.join(__dirname, "./public")));
 
 
 app.get("/api/bans", async (req, res) => {
-	const page_number: number = Number(req.query.page);
-	const page_size: number = Number(req.query.page_size);
+	const page_number: number|null = req.query.page != "null" ? Number(req.query.page) : null;
+	const page_size: number|null = req.query.page_size != "null" ? Number(req.query.page_size) : null;
+	const start_time: number|null = req.query.start_time != "null" ? Number(req.query.start_time) : null;
+	const end_time: number|null = req.query.end_time != "null" ? Number(req.query.end_time) : null;
+
 	try {
-		res.status(200).json(await fetchBans(db, page_number, page_size));
+		res.status(200).json( await fetchBans(db, page_number, page_size, start_time, end_time) );
 	}
 	catch (error) {
 		console.error(error);
