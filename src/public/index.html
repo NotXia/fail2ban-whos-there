@@ -78,6 +78,7 @@
         <span>Filter date: </span>
         <select id="select-date">
             <option value="today" selected>Today</option>
+            <option value="yesterday">Yesterday</option>
             <option value="week">This week</option>
             <option value="month">This month</option>
             <option value="all">All</option>
@@ -100,7 +101,7 @@
 </body>
 
 <script>
-    const PAGE_SIZE = 200;
+    const PAGE_SIZE = 50;
     let start_time = null;
     let end_time = null;
     let jail_filter = null;
@@ -189,6 +190,16 @@
                 case "today":
                     start_time = new Date().setHours(0, 0, 0, 0);
                     end_time = new Date().setHours(23, 59, 59, 999);
+                    break;
+                case "yesterday":
+                    start_time = new Date();
+                    end_time = new Date();
+                    start_time.setDate(start_time.getDate() - 1);
+                    start_time.setHours(0, 0, 0, 0);
+                    end_time.setDate(end_time.getDate() - 1);
+                    end_time.setHours(23, 59, 59, 999);
+                    start_time = start_time.getTime();
+                    end_time = end_time.getTime();
                     break;
                 case "week":
                     start_time = new Date();
