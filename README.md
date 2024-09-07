@@ -8,14 +8,42 @@ A simple web app to monitor and locate IPs banned by fail2ban.
 ### 1. Setup web app
 
 #### Locally
-To start the server locally, fill the environment variables in `.env` and run:
+To start the web app locally, fill the environment variables in `.env` and run:
 ```
 npm install
 npm start
 ```
 
 #### Through Docker
-WIP
+The web app can be started using the following Docker-compose configuration:
+```yml
+services:
+  whosthere:
+    image: ghcr.io/notxia/fail2ban-whos-there:latest
+    container_name: whosthere
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      TZ: ${TZ}
+      PUBLIC_URL: "http://insert-domain-here"
+      DB_PATH: "/ban-data/db.sqlite"
+    volumes:
+      - ./data:/ban-data
+```
+
+Or in plain Docker as:
+```bash
+docker run                                      \
+    --name=whosthere                            \
+    --restart unless-stopped                    \
+    -p 3000:3000                                \
+    -e TZ="timezone/here"                       \
+    -e PUBLIC_URL="http://insert-domain-here"   \
+    -e DB_PATH="/ban-data/db.sqlite"            \
+    -v ./data:/ban-data                         \
+    ghcr.io/notxia/fail2ban-whos-there:latest
+```
 
 ### 2. Setup fail2ban action
 
