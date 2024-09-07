@@ -1,7 +1,7 @@
 {
   "name": "whos-there",
   "version": "1.0.0",
-  "description": "Fail2ban map",
+  "description": "fail2ban map and monitoring dashboard",
   "main": "index.ts",
   "type": "module",
   "scripts": {
