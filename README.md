@@ -2,6 +2,7 @@
 
 A simple web app to monitor and locate IPs banned by fail2ban.
 
+![Example image](./example.png)
 
 ## Installation
 
